@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert } from 'react-native';
+import { useAuth } from '../utils/AuthContext';
 
 export default function CadastroTecnicos() {
   const [nomeCompleto, setNomeCompleto] = useState('');
@@ -7,19 +8,29 @@ export default function CadastroTecnicos() {
   const [cargo, setCargo] = useState('');
   const [telefone, setTelefone] = useState('');
   const [especialidade, setEspecialidade] = useState('');
+  const auth = useAuth();
 
   const handleCadastro = () => {
     if (!nomeCompleto || !email || !cargo) {
       Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios');
       return;
     }
-    Alert.alert('Sucesso', `Técnico ${nomeCompleto} cadastrado com sucesso!`);
-    // Limpar campos
-    setNomeCompleto('');
-    setEmail('');
-    setCargo('');
-    setTelefone('');
-    setEspecialidade('');
+
+    try {
+      auth.registerTechnician(email);
+      Alert.alert('Sucesso', `Técnico ${nomeCompleto} cadastrado com sucesso!`);
+      setNomeCompleto('');
+      setEmail('');
+      setCargo('');
+      setTelefone('');
+      setEspecialidade('');
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Erro ao tentar cadastrar o técnico.';
+      Alert.alert('Erro', message);
+    }
   };
 
   return (

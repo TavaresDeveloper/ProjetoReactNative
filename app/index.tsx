@@ -1,22 +1,32 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../utils/AuthContext';
 
 const MenuLogin: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const auth = useAuth();
 
   const handleLogin = () => {
     if (!username || !password) {
       Alert.alert('Erro', 'Por favor, preencha usuário e senha');
       return;
     }
-    // Simular autenticação bem-sucedida
-    Alert.alert('Sucesso', `Bem-vindo, ${username}!`);
-    setUsername('');
-    setPassword('');
-    // Aqui você pode navegar para a próxima tela ou criar um estado de autenticação
+
+    try {
+      auth.login(username);
+      Alert.alert('Sucesso', `Bem-vindo, ${username}!`);
+      setUsername('');
+      setPassword('');
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Erro ao tentar fazer login. Verifique suas credenciais.';
+      Alert.alert('Erro', message);
+    }
   };
 
   return (
@@ -44,23 +54,49 @@ const MenuLogin: React.FC = () => {
         <Text style={styles.buttonText}>Entrar</Text>
       </TouchableOpacity>
 
-      <View style={styles.divider} />
+      {!auth.isLoggedIn && (
+        <TouchableOpacity
+          style={styles.linkButton}
+          onPress={() => router.push('/cadastro-tecnicos')}
+        >
+          <Text style={styles.linkButtonText}>
+            Ainda não tenho cadastro. Criar técnico.
+          </Text>
+        </TouchableOpacity>
+      )}
 
-      <Text style={styles.menuTitle}>Menu Principal</Text>
+      {!auth.isLoggedIn ? (
+        <Text style={styles.infoText}>
+          Faça login para exibir o menu principal e acessar o cadastro de técnicos.
+        </Text>
+      ) : (
+        <>
+          <View style={styles.divider} />
 
-      <TouchableOpacity 
-        style={[styles.menuButton, styles.menuButtonOS]} 
-        onPress={() => router.push('/ordens-de-servico')}
-      >
-        <Text style={styles.menuButtonText}>📋 Ordens de Serviço</Text>
-      </TouchableOpacity>
+          <Text style={styles.menuTitle}>Menu Principal</Text>
 
-      <TouchableOpacity 
-        style={[styles.menuButton, styles.menuButtonCadastro]} 
-        onPress={() => router.push('/cadastro-tecnicos')}
-      >
-        <Text style={styles.menuButtonText}>👥 Cadastro de Técnicos</Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.menuButton, styles.menuButtonOS]}
+            onPress={() => router.push('/ordens-de-servico')}
+          >
+            <Text style={styles.menuButtonText}>📋 Ordens de Serviço</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuButton, styles.menuButtonCadastro]}
+            onPress={() => router.push('/cadastro-tecnicos')}
+          >
+            <Text style={styles.menuButtonText}>👥 Cadastro de Técnicos</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuButton, styles.menuButtonLogout]}
+            onPress={auth.logout}
+          >
+            <Text style={styles.menuButtonText}>🚪 Sair</Text>
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 };
@@ -132,10 +168,29 @@ const styles = StyleSheet.create({
   menuButtonCadastro: {
     backgroundColor: '#FF9800',
   },
+  menuButtonLogout: {
+    backgroundColor: '#e53935',
+  },
   menuButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  linkButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  linkButtonText: {
+    color: '#1e90ff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  infoText: {
+    textAlign: 'center',
+    color: '#666',
+    fontSize: 14,
+    marginTop: 10,
   },
 });
 

@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../utils/AuthContext';
 
 export default function OrdensDEServico() {
   const [os, setOs] = useState('');
@@ -8,6 +10,15 @@ export default function OrdensDEServico() {
   const [dataHora, setDataHora] = useState('');
   const [local, setLocal] = useState('');
   const [tecnico, setTecnico] = useState('');
+  const router = useRouter();
+  const auth = useAuth();
+
+  useEffect(() => {
+    if (!auth.isLoggedIn) {
+      Alert.alert('Acesso negado', 'Faça login antes de acessar ordens de serviço.');
+      router.replace('/');
+    }
+  }, [auth.isLoggedIn, router]);
 
   const handleSubmit = () => {
     if (!os || !descricao || !cliente || !dataHora || !local || !tecnico) {
@@ -15,7 +26,6 @@ export default function OrdensDEServico() {
       return;
     }
     Alert.alert('Sucesso', `Ordem de Serviço ${os} registrada com sucesso!`);
-    // Limpar campos
     setOs('');
     setDescricao('');
     setCliente('');
@@ -23,6 +33,10 @@ export default function OrdensDEServico() {
     setLocal('');
     setTecnico('');
   };
+
+  if (!auth.isLoggedIn) {
+    return null;
+  }
 
   return (
     <ScrollView style={styles.container}>
